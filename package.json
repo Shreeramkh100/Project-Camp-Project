@@ -1,0 +1,32 @@
+{
+  "name": "project-camp-project",
+  "version": "1.0.0",
+  "description": "Project Camp Backend is a RESTful API service designed to support collaborative project management. The system enables teams to organize projects, manage tasks with subtasks, maintain project notes, and handle user authentication with role-based access control.",
+  "keywords": [
+    "Backend",
+    "NodeJS",
+    "API",
+    "Project",
+    "Management",
+    "Express"
+  ],
+  "homepage": "https://github.com/Shreeramkh100/Project-Camp-Project#readme",
+  "bugs": {
+    "url": "https://github.com/Shreeramkh100/Project-Camp-Project/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shreeramkh100/Project-Camp-Project.git"
+  },
+  "license": "ISC",
+  "author": "Shreeram Haridas",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node index.js"
+  },
+  "devDependencies": {
+    "prettier": "3.9.6"
+  }
+}
