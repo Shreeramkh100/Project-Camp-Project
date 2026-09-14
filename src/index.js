@@ -1,4 +1,4 @@
-import app from "./app.js"
+import app from "./app.js";
 import DBConnection from "./db/dbConnection.js";
 const PORT = process.env.PORT || 1002;
 
@@ -9,6 +9,6 @@ DBConnection()
           })
      })
      .catch((error) => {
-          console.error("DB Connection Failed ❌ :", error)
+          console.error("DB Connection Failed ❌ :", error);
           process.exit(1); //Terminates Node 
      })
