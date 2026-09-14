@@ -1,6 +1,14 @@
 import app from "./app.js"
-const PORT=process.env.PORT||1002;
+import DBConnection from "./db/dbConnection.js";
+const PORT = process.env.PORT || 1002;
 
-app.listen(PORT,()=>{
-     console.log(`Example app listening on port ${PORT}`)
-})
+DBConnection()
+     .then(() => {
+          app.listen(PORT, () => {
+               console.log(`Server is listening on port ${PORT}`)
+          })
+     })
+     .catch((error) => {
+          console.error("DB Connection Failed ❌ :", error)
+          process.exit(1); //Terminates Node 
+     })
