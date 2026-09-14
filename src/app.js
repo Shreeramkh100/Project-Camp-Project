@@ -15,8 +15,10 @@ app.use(cors({
     allowedHeaders:["Content-Type","Authorization"]
 }))
 
-app.get('/',(req,res)=>{
-    res.end("Tu kya kar raha hai mere bhai")
-})
+//Import routes
+import router from "./routes/healthCheck.routes.js";
+
+app.use("/api/v1/healthcheck/",router)
+
 
 export default app;
