@@ -61,6 +61,7 @@ const userSchema = new Schema({
 
 const User = model('User', userSchema);
 
+//Hooks
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) {
         return next();
@@ -68,5 +69,12 @@ userSchema.pre("save", async function (next) {
     this.password = await bcrpt.hash(this.password, HashRound);
     next();
 })
+
+//Methods
+userSchema.methods.isPasswordCorrect=async function (password){
+    return await bcrpt.compare(password,this.password)
+}
+
+
 
 export default User;
