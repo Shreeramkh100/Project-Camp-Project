@@ -1,3 +1,5 @@
+export const HashRound=10;
+
 export const UserRolesEnum={
     ADMIN:"admin",
     PROJECT_ADMIN:"project_admin",

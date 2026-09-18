@@ -1,4 +1,6 @@
 import { Schema, model } from 'mongoose';
+import bcrpt from 'bcrypt';
+import { HashRound } from '../utils/constants.js';
 
 const userSchema = new Schema({
     avatar: {
@@ -55,8 +57,16 @@ const userSchema = new Schema({
     emailVerificationExpiry: {
         type: Date
     }
-}, { timestamps: true })
+}, { timestamps: true });
 
-const User = model('User', userSchema)
+const User = model('User', userSchema);
+
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) {
+        return next();
+    }
+    this.password = await bcrpt.hash(this.password, HashRound);
+    next();
+})
 
 export default User;
