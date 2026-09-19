@@ -1,7 +1,8 @@
 import { Schema, model } from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { HashRound } from '../utils/constants.js';
+import crypto from 'crypto';
+import { HashRound, BufferVal } from '../utils/constants.js';
 
 const userSchema = new Schema({
     avatar: {
@@ -71,7 +72,7 @@ userSchema.pre("save", async function (next) {
 
 //Methods
 userSchema.methods.isPasswordCorrect = async function (password) {
-    const isPasswordCorrect= await bcrypt.compare(password, this.password);
+    const isPasswordCorrect = await bcrypt.compare(password, this.password);
     return isPasswordCorrect;
 }
 
@@ -101,6 +102,14 @@ userSchema.methods.generateRefreshToken = function () {
         }
     )
     return refreshToken;
+}
+
+//Temporary Token (Without Data Token)
+userSchema.methods.generateTemporaryToken = function () {
+    const unhashedToken = crypto.randomBytes(BufferVal).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(unhashedToken).digest("hex");
+    const tokenExpiry = Date.now() + (20 * 60 * 1000); //20 minutes
+    return { unhashedToken, hashedToken, tokenExpiry };
 }
 
 const User = model('User', userSchema);

@@ -1,4 +1,5 @@
 export const HashRound=10;
+export const BufferVal=20;
 
 export const UserRolesEnum={
     ADMIN:"admin",
