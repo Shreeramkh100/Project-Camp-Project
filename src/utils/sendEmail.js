@@ -2,29 +2,9 @@ import Mailgen from "mailgen"; //Generate Email
 import nodemailer from "nodemailer"; //Send Email
 import { fromEmailId } from "./constants";
 
-const sendEmail = async (options) => {
 
-    const emailGenerator = new Mailgen({
-        theme: 'default',
-        product: {
-            name: 'Project Camp',
-            link: "https://projectcamp.com"
-        }
-    });
-
-    const emailHTML = emailGenerator.generate(options.mailgenContent);
-
-    const emailText = emailGenerator.generatePlaintext(options.mailgenContent);
-
-    const emailInfo = {
-        from: fromEmailId,
-        to: options.toEmailId,
-        subject: options.subject,
-        text: emailText,
-        html: emailHTML
-    }
-
-    const transporter = nodemailer.createTransport({
+// Configure Nodemailer transporter for Mailtrap (testing)
+const transporter = nodemailer.createTransport({
         host: process.env.MAILTRAP_HOST,
         port: process.env.MAILTRAP_PORT,
         auth: {
@@ -33,16 +13,40 @@ const sendEmail = async (options) => {
         }
     })
 
+const sendEmail = async (options) => {
+
+    // Configure Mailgen
+    const emailGenerator = new Mailgen({
+        theme: 'default',
+        product: {
+            name: 'Project Camp',
+            link: "https://projectcamp.com"
+        }
+    });
+
+    // Generate HTML and plain-text email content
+    const emailHTML = emailGenerator.generate(options.mailgenContent);
+    const emailText = emailGenerator.generatePlaintext(options.mailgenContent);
+
+    // Prepare email details
+    const emailInfo = {
+        from: fromEmailId,
+        to: options.toEmailId,
+        subject: options.subject,
+        text: emailText,
+        html: emailHTML
+    }
+
+    // Send email using Nodemailer
     try {
         await transporter.sendMail(emailInfo);
         console.log("Email sent successfully");
     } catch (error) {
-        console.error("Error while sending email:", err);
+        console.error("Error while sending email:", error);
     }
-
 }
 
-//Generate Email
+// Generate email content for email verification
 const emailVerificationContent = (userName, verificationURL) => {
     const content = {
         body: {
@@ -62,6 +66,7 @@ const emailVerificationContent = (userName, verificationURL) => {
     return content;
 }
 
+// Generate email content for password reset
 const passwordResetContent = (userName, resetURL) => {
     const content = {
         body: {
