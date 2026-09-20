@@ -1,6 +1,8 @@
 export const HashRound=10;
 export const BufferVal=20;
 
+export const fromEmailId="projectcamp@gmail.com"
+
 export const UserRolesEnum={
     ADMIN:"admin",
     PROJECT_ADMIN:"project_admin",
