@@ -37,7 +37,8 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        required: [true, "Password is Required"]
+        required: [true, "Password is Required"],
+        select:false
     },
     isEmailVerified: {
         type: Boolean,
@@ -61,13 +62,13 @@ const userSchema = new Schema({
     }
 }, { timestamps: true });
 
-//Hooks
+//Hooks 
+//Either use next() or async-await
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) {
-        return next();
+        return;
     }
     this.password = await bcrypt.hash(this.password, HashRound);
-    next();
 })
 
 //Methods
