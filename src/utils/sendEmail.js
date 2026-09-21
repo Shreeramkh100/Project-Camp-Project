@@ -1,6 +1,6 @@
 import Mailgen from "mailgen"; //Generate Email
 import nodemailer from "nodemailer"; //Send Email
-import { fromEmailId } from "./constants";
+import { fromEmailId } from "./constants.js";
 
 
 // Configure Nodemailer transporter for Mailtrap (testing)
