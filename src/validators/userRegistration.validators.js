@@ -1,12 +1,6 @@
 import { body } from "express-validator";
+import { passwordCondition } from "../utils/validationRules.js";
 
-const passwordCondition = {
-    minLength: 8,
-    minLowercase: 1,
-    minUppercase: 1,
-    minNumbers: 1,
-    minSymbols: 1,
-};
 const userRegistrationValidator = () => {
     return [
         body("fullName")
