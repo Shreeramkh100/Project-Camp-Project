@@ -1,9 +1,13 @@
 import { Router } from 'express';
 import registerUser from '../controllers/auth.controllers.js';
 
+//Validators
+import validate from '../middlewwares/userRegistration.middlewares.js';
+import userRegistrationValidator from '../validators/userRegistration.validators.js';
+
 const authRouter = Router();
 
 authRouter
-.route('/register').post(registerUser)
+    .route('/register').post(userRegistrationValidator(), validate, registerUser)
 
 export default authRouter;
