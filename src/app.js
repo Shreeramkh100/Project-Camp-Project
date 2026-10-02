@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import errorHandler from "./middlewwares/errorHandler.middlewares.js";
 const app = express();
 
 // Basic Configurations
@@ -25,5 +26,8 @@ app.use(healthCheckRoute,healthCheckRouter);
 
 //Authentication Route
 app.use(authRoute,authRouter)
+
+//  Error Handling Middleware
+app.use(errorHandler);
 
 export default app;
