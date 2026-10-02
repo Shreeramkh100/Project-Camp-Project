@@ -17,7 +17,7 @@ const userSchema = new Schema({
     },
     userName: {
         type: String,
-        required: true,
+        required: [true, "Username is Required"],
         unique: true,
         lowercase: true,
         trim: true,
@@ -25,20 +25,20 @@ const userSchema = new Schema({
     },
     email: {
         type: String,
-        required: true,
+        required: [true, "Email is Required"],
         unique: true,
         lowercase: true,
         trim: true
     },
     fullName: {
         type: String,
-        required: true,
+        required: [true, "Fullname is Required"],
         trim: true
     },
     password: {
         type: String,
         required: [true, "Password is Required"],
-        select:false
+        select: false
     },
     isEmailVerified: {
         type: Boolean,
