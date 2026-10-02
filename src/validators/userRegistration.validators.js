@@ -17,8 +17,10 @@ const userRegistrationValidator = () => {
         body("userName")
             .trim()
             .notEmpty()
-            .withMessage("Username is mandatory"),
-
+            .withMessage("Username is mandatory")
+            .isLength({min:5})
+            .withMessage("Username must have atleast 5 characters"),
+           
         body("email")
             .trim()
             .notEmpty()
