@@ -2,7 +2,7 @@ import { Router } from 'express';
 import registerUser from '../controllers/auth.controllers.js';
 
 //Validators
-import validate from '../middlewwares/userRegistration.middlewares.js';
+import validate from '../middlewares/userRegistration.middlewares.js';
 import userRegistrationValidator from '../validators/userRegistration.validators.js';
 
 const authRouter = Router();
