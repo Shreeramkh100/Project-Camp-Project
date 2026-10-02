@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import errorHandler from "./middlewares/errorHandler.middlewares.js";
 const app = express();
 
@@ -7,6 +8,7 @@ const app = express();
 app.use(express.json({limit:'16kb'}));//JSON body parsing
 app.use(express.urlencoded({extended:true,limit:'16kb'}));//Form body parsing
 app.use(express.static("public"));//Static file serving
+app.use(cookieParser());
 
 //  CORS Configurations
 app.use(cors({
