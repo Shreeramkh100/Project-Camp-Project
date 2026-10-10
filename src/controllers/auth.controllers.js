@@ -23,7 +23,8 @@ const generateAccessandRefreshTokens = async (id) => {
 
 const cookieOptions = {
     httpOnly: true,
-    secure: true
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax"
 }
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -64,7 +65,7 @@ const registerUser = asyncHandler(async (req, res) => {
         )
     })
     // Registration successful
-    return res.status(201).json(new ApiResponse( 201 ,"User is Registered successfully",))
+    return res.status(201).json(new ApiResponse(201, "User is Registered successfully"))
 })
 
 
@@ -89,10 +90,29 @@ const authenticateUser = asyncHandler(async (req, res) => {
     // Generate and persist authentication tokens
     const { accessToken, refreshToken } = await generateAccessandRefreshTokens(user._id);
 
-      // Send access token in response and refresh token in HttpOnly cookie
+    const accessTokenCookieOptions = {
+        ...cookieOptions,
+        mazAge: Number(process.env.ACCESS_TOKEN_EXPIRY_COOKIES)
+    }
+
+    const refreshTokenCookieOptions = {
+        ...cookieOptions,
+        mazAge: Number(process.env.REFRESH_TOKEN_EXPIRY_COOKIES)
+    }
+
+    // Web: Send access and refresh tokens through HttpOnly cookies
     return res.status(200)
-        .cookie("refreshToken", refreshToken, cookieOptions)
-        .json(new ApiResponse(200, "User authenticated successfully", { accessToken }))
+        .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
+        .cookie("accessToken", accessToken, accessTokenCookieOptions)
+        .json(new ApiResponse(200, "User authenticated successfully"));
+
+    // Mobile: Return access and refresh tokens in the response body
+    // return res.status(200).json(
+    //     new ApiResponse(200, "User authenticated successfully", {
+    //         accessToken,
+    //         refreshToken
+    //     })
+    // );
 
 })
 
