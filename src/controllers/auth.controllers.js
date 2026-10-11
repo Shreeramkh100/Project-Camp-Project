@@ -69,7 +69,7 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 
-const authenticateUser = asyncHandler(async (req, res) => {
+const loginUser = asyncHandler(async (req, res) => {
     // Get login credentials
     const { email, password } = req.body;
 
@@ -116,4 +116,21 @@ const authenticateUser = asyncHandler(async (req, res) => {
 
 })
 
-export { registerUser, authenticateUser };
+const logoutUser = asyncHandler(async (req, res) => {
+    // Get the authenticated user's ID from the verifyJWT middleware
+    const userId = req.user._id;
+
+    // Invalidate the user's refresh token in the database
+    await User.findByIdAndUpdate(userId,
+        { $set:{ refreshToken: null} },
+        { new: true }
+    );
+
+    // Clear both authentication cookies from the browser
+    return res.status(200)
+        .clearCookie("refreshToken", cookieOptions)
+        .clearCookie("accessToken", cookieOptions)
+        .json(new ApiResponse(200, "User logged out successfully"));
+})
+
+export { registerUser, loginUser, logoutUser };

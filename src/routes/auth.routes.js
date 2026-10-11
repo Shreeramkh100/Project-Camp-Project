@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { registerUser, authenticateUser } from '../controllers/auth.controllers.js';
+import { registerUser, loginUser, logoutUser } from '../controllers/auth.controllers.js';
 
 //Validators
 import validate from '../middlewares/validator.middlewares.js';
 import userRegistrationValidator from '../validators/userRegistration.validators.js';
 import userAuthenticationValidator from '../validators/userAuthentication.validators.js';
+import verifyJWT from '../middlewares/auth.middlewares.js';
 
 const authRouter = Router();
 
@@ -13,6 +14,11 @@ authRouter
     .post(userRegistrationValidator(), validate, registerUser)
 authRouter
     .route('/login')
-    .post(userAuthenticationValidator(), validate, authenticateUser)
+    .post(userAuthenticationValidator(), validate, loginUser)
+
+//Secure Routes
+authRouter
+    .route('/logout')
+    .post(verifyJWT, logoutUser)
 
 export default authRouter;
