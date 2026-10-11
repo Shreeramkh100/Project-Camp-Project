@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerUser, loginUser, logoutUser, getCurrentUser, verifyEmail, resendVerifyEmail } from '../controllers/auth.controllers.js';
+import { registerUser, loginUser, logoutUser, getCurrentUser, verifyEmail, resendVerifyEmail, refreshAccessToken } from '../controllers/auth.controllers.js';
 
 //Validators
 import validate from '../middlewares/validator.middlewares.js';
@@ -18,6 +18,9 @@ authRouter
 authRouter
     .route('/verify-email/:verificationToken')
     .get(verifyEmail)
+authRouter
+    .route('/refresh-token')
+    .post(refreshAccessToken)
 
 //Secure Routes
 authRouter

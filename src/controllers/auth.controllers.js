@@ -1,10 +1,27 @@
 import crypto from 'crypto';
+import jwt from "jsonwebtoken";
 import User from "../models/users.models.js";
 import asyncHandler from "../utils/asyncHandler.js"
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
 import { sendEmail, emailVerificationContent } from "../utils/sendEmail.js";
 import { authRoute } from "../utils/routeConstants.js";
+
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax"
+}
+
+const accessTokenCookieOptions = {
+    ...cookieOptions,
+    maxAge: Number(process.env.ACCESS_TOKEN_EXPIRY_COOKIES)
+}
+
+const refreshTokenCookieOptions = {
+    ...cookieOptions,
+    maxAge: Number(process.env.REFRESH_TOKEN_EXPIRY_COOKIES)
+}
 
 // Generate and persist authentication tokens
 const generateAccessandRefreshTokens = async (id) => {
@@ -22,11 +39,6 @@ const generateAccessandRefreshTokens = async (id) => {
     return { accessToken, refreshToken };
 }
 
-const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax"
-}
 
 const registerUser = asyncHandler(async (req, res) => {
     // Get user data
@@ -90,16 +102,6 @@ const loginUser = asyncHandler(async (req, res) => {
 
     // Generate and persist authentication tokens
     const { accessToken, refreshToken } = await generateAccessandRefreshTokens(user._id);
-
-    const accessTokenCookieOptions = {
-        ...cookieOptions,
-        mazAge: Number(process.env.ACCESS_TOKEN_EXPIRY_COOKIES)
-    }
-
-    const refreshTokenCookieOptions = {
-        ...cookieOptions,
-        mazAge: Number(process.env.REFRESH_TOKEN_EXPIRY_COOKIES)
-    }
 
     // Web: Send access and refresh tokens through HttpOnly cookies
     return res.status(200)
@@ -170,10 +172,10 @@ const verifyEmail = asyncHandler(async (req, res) => {
 })
 
 const resendVerifyEmail = asyncHandler(async (req, res) => {
-    const user= await User.findById(req.user._id);
+    const user = await User.findById(req.user._id);
 
-    if(!user){
-        throw new ApiError(404,"User not found")
+    if (!user) {
+        throw new ApiError(404, "User not found");
     }
 
     // Skip if the email is already verified
@@ -187,7 +189,7 @@ const resendVerifyEmail = asyncHandler(async (req, res) => {
     user.emailVerificationToken = hashedToken;
     user.emailVerificationExpiry = tokenExpiry;
 
-    await user.save({ validateBeforeSave: false })
+    await user.save({ validateBeforeSave: false });
 
     //Send verification link
     await sendEmail({
@@ -197,9 +199,48 @@ const resendVerifyEmail = asyncHandler(async (req, res) => {
             user.userName,
             `${req.protocol}://${req.host}${authRoute}verify-email/${unhashedToken}`
         )
-    })
+    });
 
-    return res.status(200).json(new ApiResponse(200, "Email verification is resent to your registered email"))
+    return res.status(200).json(new ApiResponse(200, "Email verification is resent to your registered email"));
 })
 
-export { registerUser, loginUser, logoutUser, getCurrentUser, verifyEmail, resendVerifyEmail };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    // Extract access token from cookies (Web) or Authorization header (Mobile)
+    const token = req.cookies?.refreshToken || req.headers?.authorization?.replace("Bearer ", "");
+
+    if (!token) {
+        throw new ApiError(400, "Refresh Token is missing");
+    }
+
+    let decodedToken;
+
+    // Verify token signature and expiry
+    try {
+        decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    } catch (error) {
+        throw new ApiError(401, "Invalid or expired refresh token");
+    }
+    // Validate user and stored refresh token
+    const user = await User.findOne({ _id: decodedToken._id, refreshToken: token });
+
+    if (!user) {
+        throw new ApiError(401, "Refresh token invalid");
+    }
+    // Rotate tokens and persist the new refresh token
+    const { accessToken, refreshToken } = await generateAccessandRefreshTokens(user._id);
+
+    // Web: Send access and refresh tokens through HttpOnly cookies
+    return res.status(200)
+        .cookie("accessToken", accessToken, accessTokenCookieOptions)
+        .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
+        .json(new ApiResponse(200, "New Access and Refesh tokens are generated"));
+
+    // Mobile: Return access and refresh tokens in the response body
+    // return res.status(200)
+    //     .json(new ApiResponse(200, "New Access and Refesh tokens are generated",{
+    //         accessToken,
+    //         refreshToken
+    //     }));
+})
+
+export { registerUser, loginUser, logoutUser, getCurrentUser, verifyEmail, resendVerifyEmail, refreshAccessToken };
