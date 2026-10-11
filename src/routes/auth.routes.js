@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerUser, loginUser, logoutUser, getCurrentUser } from '../controllers/auth.controllers.js';
+import { registerUser, loginUser, logoutUser, getCurrentUser , verifyEmail } from '../controllers/auth.controllers.js';
 
 //Validators
 import validate from '../middlewares/validator.middlewares.js';
@@ -15,6 +15,9 @@ authRouter
 authRouter
     .route('/login')
     .post(userAuthenticationValidator(), validate, loginUser)
+authRouter
+    .route('/verify-email/:verificationToken')
+    .get(verifyEmail)
 
 //Secure Routes
 authRouter

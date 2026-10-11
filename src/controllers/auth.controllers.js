@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import User from "../models/users.models.js";
 import asyncHandler from "../utils/asyncHandler.js"
 import ApiResponse from "../utils/apiResponse.js";
@@ -138,5 +139,34 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "Current User Information fetched successfully", { user }))
 })
 
+const verifyEmail = asyncHandler(async (req, res) => {
+    const { verificationToken } = req.params;
 
-export { registerUser, loginUser, logoutUser, getCurrentUser };
+    if (!verificationToken) {
+        throw new ApiError(400, "Email verification token missing")
+    }
+
+    const unhashedToken = verificationToken;
+    // Hash the incoming token to match the stored hash
+    const generatedHashedToken = crypto.createHash("sha256").update(unhashedToken).digest("hex");
+
+    // Find the user with a matching, unexpired verification token
+    const user = await User.findOne({
+        emailVerificationToken: generatedHashedToken,
+        emailVerificationExpiry: { $gt: Date.now() }
+    })
+
+    if (!user) {
+        throw new ApiError(400, "Email verification token is invalid or expired")
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationExpiry = null;
+
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json(new ApiResponse(200, "Email verification successful"))
+})
+
+export { registerUser, loginUser, logoutUser, getCurrentUser, verifyEmail };
