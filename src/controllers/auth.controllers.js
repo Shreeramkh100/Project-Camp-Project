@@ -122,7 +122,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
     // Invalidate the user's refresh token in the database
     await User.findByIdAndUpdate(userId,
-        { $set:{ refreshToken: null} },
+        { $set: { refreshToken: null } },
         { new: true }
     );
 
@@ -133,4 +133,10 @@ const logoutUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, "User logged out successfully"));
 })
 
-export { registerUser, loginUser, logoutUser };
+const getCurrentUser = asyncHandler(async (req, res) => {
+    const user = req.user;
+    return res.status(200).json(new ApiResponse(200, "Current User Information fetched successfully", { user }))
+})
+
+
+export { registerUser, loginUser, logoutUser, getCurrentUser };

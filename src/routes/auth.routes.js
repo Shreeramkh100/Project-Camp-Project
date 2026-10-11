@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerUser, loginUser, logoutUser } from '../controllers/auth.controllers.js';
+import { registerUser, loginUser, logoutUser, getCurrentUser } from '../controllers/auth.controllers.js';
 
 //Validators
 import validate from '../middlewares/validator.middlewares.js';
@@ -20,5 +20,9 @@ authRouter
 authRouter
     .route('/logout')
     .post(verifyJWT, logoutUser)
+authRouter
+    .route('/current-user')
+    .get(verifyJWT, getCurrentUser)
+
 
 export default authRouter;
