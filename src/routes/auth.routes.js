@@ -3,12 +3,12 @@ import { registerUser, loginUser, logoutUser, getCurrentUser, refreshAccessToken
 
 //Validators
 import validate from '../middlewares/validator.middlewares.js';
-import userRegistrationValidator from '../validators/userRegistration.validators.js';
-import userAuthenticationValidator from '../validators/userAuthentication.validators.js';
+import { userRegistrationValidator, userAuthenticationValidator, changePasswordValidator, requestResetPasswordValiadtor, resetPasswordValidator } from '../validators/auth.validators.js';
 import verifyJWT from '../middlewares/auth.middlewares.js';
 
 const authRouter = Router();
 
+//Unsecure routes
 authRouter
     .route('/register')
     .post(userRegistrationValidator(), validate, registerUser)
@@ -23,11 +23,10 @@ authRouter
     .get(verifyEmail)
 authRouter
     .route('/forgot-password')
-    .post(requestResetPassword)
+    .post(requestResetPasswordValiadtor(), validate, requestResetPassword)
 authRouter
     .route('/reset-password/:resetToken')
-    .post(resetPassword)
-
+    .post(resetPasswordValidator(), validate, resetPassword)
 
 //Secure Routes
 authRouter
@@ -41,6 +40,6 @@ authRouter
     .post(verifyJWT, resendVerifyEmail)
 authRouter
     .route('/change-password')
-    .post(verifyJWT, changePassword) //Need validators
+    .post(verifyJWT, changePasswordValidator(), validate, changePassword)
 
 export default authRouter;
