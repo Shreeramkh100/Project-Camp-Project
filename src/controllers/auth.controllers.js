@@ -39,7 +39,6 @@ const generateAccessandRefreshTokens = async (id) => {
     return { accessToken, refreshToken };
 }
 
-
 const registerUser = asyncHandler(async (req, res) => {
     // Get user data
     const { userName, email, fullName, password } = req.body;
@@ -141,6 +140,45 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "Current User Information fetched successfully", { user }))
 })
 
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    // Extract access token from cookies (Web) or Authorization header (Mobile)
+    const token = req.cookies?.refreshToken || req.headers?.authorization?.replace("Bearer ", "");
+
+    if (!token) {
+        throw new ApiError(400, "Refresh Token is missing");
+    }
+
+    let decodedToken;
+
+    // Verify token signature and expiry
+    try {
+        decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    } catch (error) {
+        throw new ApiError(401, "Invalid or expired refresh token");
+    }
+    // Validate user and stored refresh token
+    const user = await User.findOne({ _id: decodedToken._id, refreshToken: token });
+
+    if (!user) {
+        throw new ApiError(401, "Refresh token invalid");
+    }
+    // Rotate tokens and persist the new refresh token
+    const { accessToken, refreshToken } = await generateAccessandRefreshTokens(user._id);
+
+    // Web: Send access and refresh tokens through HttpOnly cookies
+    return res.status(200)
+        .cookie("accessToken", accessToken, accessTokenCookieOptions)
+        .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
+        .json(new ApiResponse(200, "New Access and Refesh tokens are generated"));
+
+    // Mobile: Return access and refresh tokens in the response body
+    // return res.status(200)
+    //     .json(new ApiResponse(200, "New Access and Refesh tokens are generated",{
+    //         accessToken,
+    //         refreshToken
+    //     }));
+})
+
 const verifyEmail = asyncHandler(async (req, res) => {
     const { verificationToken } = req.params;
 
@@ -202,45 +240,6 @@ const resendVerifyEmail = asyncHandler(async (req, res) => {
     });
 
     return res.status(200).json(new ApiResponse(200, "Email verification is resent to your registered email"));
-})
-
-const refreshAccessToken = asyncHandler(async (req, res) => {
-    // Extract access token from cookies (Web) or Authorization header (Mobile)
-    const token = req.cookies?.refreshToken || req.headers?.authorization?.replace("Bearer ", "");
-
-    if (!token) {
-        throw new ApiError(400, "Refresh Token is missing");
-    }
-
-    let decodedToken;
-
-    // Verify token signature and expiry
-    try {
-        decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-    } catch (error) {
-        throw new ApiError(401, "Invalid or expired refresh token");
-    }
-    // Validate user and stored refresh token
-    const user = await User.findOne({ _id: decodedToken._id, refreshToken: token });
-
-    if (!user) {
-        throw new ApiError(401, "Refresh token invalid");
-    }
-    // Rotate tokens and persist the new refresh token
-    const { accessToken, refreshToken } = await generateAccessandRefreshTokens(user._id);
-
-    // Web: Send access and refresh tokens through HttpOnly cookies
-    return res.status(200)
-        .cookie("accessToken", accessToken, accessTokenCookieOptions)
-        .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
-        .json(new ApiResponse(200, "New Access and Refesh tokens are generated"));
-
-    // Mobile: Return access and refresh tokens in the response body
-    // return res.status(200)
-    //     .json(new ApiResponse(200, "New Access and Refesh tokens are generated",{
-    //         accessToken,
-    //         refreshToken
-    //     }));
 })
 
 const changePassword = asyncHandler(async (req, res) => {
@@ -369,4 +368,4 @@ const resetPassword = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, "Password is reset successfully"))
 })
 
-export { registerUser, loginUser, logoutUser, requestResetPassword, resetPassword, changePassword, getCurrentUser, verifyEmail, resendVerifyEmail, refreshAccessToken };
+export { registerUser, loginUser, logoutUser, getCurrentUser, refreshAccessToken, verifyEmail, resendVerifyEmail, changePassword, requestResetPassword, resetPassword };
