@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerUser, loginUser, logoutUser, getCurrentUser, verifyEmail, resendVerifyEmail, refreshAccessToken } from '../controllers/auth.controllers.js';
+import { registerUser, loginUser, logoutUser,requestResetPassword, resetPassword, changePassword, getCurrentUser, verifyEmail, resendVerifyEmail, refreshAccessToken } from '../controllers/auth.controllers.js';
 
 //Validators
 import validate from '../middlewares/validator.middlewares.js';
@@ -21,11 +21,21 @@ authRouter
 authRouter
     .route('/refresh-token')
     .post(refreshAccessToken)
+authRouter
+    .route('/forgot-password')
+    .post(requestResetPassword)
+authRouter
+    .route('/reset-password/:resetToken')
+    .post(resetPassword)
+
 
 //Secure Routes
 authRouter
     .route('/logout')
     .post(verifyJWT, logoutUser)
+authRouter
+    .route('/change-password')
+    .post(verifyJWT, changePassword) //Need validators
 authRouter
     .route('/current-user')
     .get(verifyJWT, getCurrentUser)

@@ -4,7 +4,7 @@ import User from "../models/users.models.js";
 import asyncHandler from "../utils/asyncHandler.js"
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
-import { sendEmail, emailVerificationContent } from "../utils/sendEmail.js";
+import { sendEmail, emailVerificationContent, passwordResetContent } from "../utils/sendEmail.js";
 import { authRoute } from "../utils/routeConstants.js";
 
 const cookieOptions = {
@@ -243,4 +243,130 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     //     }));
 })
 
-export { registerUser, loginUser, logoutUser, getCurrentUser, verifyEmail, resendVerifyEmail, refreshAccessToken };
+const changePassword = asyncHandler(async (req, res) => {
+    const userData = req.user;
+    const { password, newPassword } = req.body;
+
+    // Ensure both the current password and new password are provided
+    if (!password || !newPassword) {
+        throw new ApiError(400, "Password is missing");
+    }
+
+    // Fetch the user with the password field included for verification
+    const user = await User.findById(userData._id).select("+password");
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    // Verify the current password before allowing a password change
+    const isPasswordCorrect = await user.isPasswordCorrect(password);
+
+    if (!isPasswordCorrect) {
+        throw new ApiError(400, "Old Password is Invalid");
+    }
+
+    // Prevent the user from reusing their existing password
+    const isExistingandNewPasswordSame = await user.isPasswordCorrect(newPassword);
+
+    if (isExistingandNewPasswordSame) {
+        throw new ApiError(400, "Existing and new Password is same")
+    }
+
+    // Update the password;
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    // Rotate authentication tokens after the password change
+    const { accessToken, refreshToken } = await generateAccessandRefreshTokens(user._id);
+
+    return res.status(200)
+        .cookie("accessToken", accessToken, accessTokenCookieOptions)
+        .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
+        .json(new ApiResponse(200, "Password updated successfully"));
+})
+
+const requestResetPassword = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        throw new ApiError(400, "Email is mandatory")
+    }
+
+    const user = await User.findOne({ email })
+
+    if (!user) {
+        throw new ApiError(400, "User not found")
+    }
+
+    // Generate a temporary token, its hash for database storage, and its expiry time
+    const { unhashedToken, hashedToken, tokenExpiry } = await user.generateTemporaryToken();
+
+    // Store only the hashed token and expiry
+    user.forgotPasswordToken = hashedToken;
+    user.forgotPasswordExpiry = tokenExpiry;
+    await user.save({ validateBeforeSave: false })
+
+    //Send Password reset link
+    await sendEmail({
+        toEmailId: user.email,
+        subject: "Reset your Password",
+        mailgenContent: passwordResetContent(
+            user.userName,
+            `${req.protocol}://${req.host}${authRoute}reset-password/${unhashedToken}`
+        )
+    })
+
+    return res.status(200).json(new ApiResponse(200, "Password reset link is sent to your registered email"))
+})
+
+const resetPassword = asyncHandler(async (req, res) => {
+    const { newPassword } = req.body;
+    const { resetToken } = req.params;
+
+    if (!resetToken) {
+        throw new ApiError(400, "Password reset token is missing")
+    }
+
+    if (!newPassword) {
+        throw new ApiError(400, "Password is mandatory")
+    }
+
+    // Hash the token from the URL to compare it with the hash stored in the database
+    const unhashedToken = resetToken;
+    const hashedToken = crypto.createHash("sha256").update(unhashedToken).digest("hex");
+
+    //Accept only a matching reset token that has not expired
+    const user = await User.findOne({
+        forgotPasswordToken: hashedToken,
+        forgotPasswordExpiry: { $gt: Date.now() }
+    }).select("+password");
+
+    if (!user) {
+        throw new ApiError(400, "Password reset token is Invalid or expired")
+    }
+
+    // Prevent the user from reusing their existing password
+    const isExistingandNewPasswordSame = await user.isPasswordCorrect(newPassword);
+
+    if (isExistingandNewPasswordSame) {
+        throw new ApiError(400, "Existing and new Password is same")
+    }
+
+    // Set the new password and invalidate the reset token to prevent reuse
+    user.password = newPassword;
+    user.forgotPasswordExpiry = null;
+    user.forgotPasswordToken = null;
+
+    await user.save({ validateBeforeSave: false })
+
+    // Generate fresh authentication tokens after a successful password reset
+    const { refreshToken, accessToken } = await generateAccessandRefreshTokens(user._id);
+
+    return res.status(200)
+        .cookie("accessToken", accessToken, accessTokenCookieOptions)
+        .cookie("refreshToken", refreshToken, refreshTokenCookieOptions)
+        .json(new ApiResponse(200, "Password is reset successfully"))
+})
+
+export { registerUser, loginUser, logoutUser, requestResetPassword, resetPassword, changePassword, getCurrentUser, verifyEmail, resendVerifyEmail, refreshAccessToken };
