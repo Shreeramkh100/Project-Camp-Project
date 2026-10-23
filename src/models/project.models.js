@@ -19,6 +19,9 @@ const projectSchema = new Schema({
     }
 }, { timestamps: true });
 
+// Enforce uniqueness for the specified field combination
+projectSchema.index({ name: 1, createdBy: 1 }, { unique: true })
+
 const Project = model('Project', projectSchema);
 
 export default Project;
