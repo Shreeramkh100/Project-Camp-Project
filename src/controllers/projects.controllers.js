@@ -5,6 +5,57 @@ import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
 import { UserRolesEnum } from "../utils/constants.js";
 
+const listAllProjects = asyncHandler(async (req, res) => {
+    const user = req.user;
+    const data = await ProjectMember.aggregate(
+        [
+            // Step 1: Find all projects the current user is a member of
+            {
+                $match: { user: user._id }
+            },
+            // Step 2: Fetch the details of each project.
+            // The "project" field in ProjectMember matches the "_id" field in Projects.
+            {
+                $lookup: {
+                    from: "projects",
+                    localField: "project",
+                    foreignField: "_id",
+                    as: "projectDetails", //Store matchind details in array
+                    pipeline: [
+                        // Step 3: Fetch all members belonging to each project.
+                        // The "_id" field in Projects matches the "project" field in ProjectMember.
+                        {
+                            $lookup: {
+                                from: "projectmembers",
+                                localField: "_id",
+                                foreignField: "project",
+                                as: "projectMembers"
+                            }
+                        },
+                        //Step4 :Add count of members
+                        {
+                            $addFields: { memberCount: { $size: "$projectMembers" } }
+                        }
+                    ]
+                }
+            },
+            // Step 5: Convert the "projectDetails" array into a single object.
+            {
+                $unwind: "$projectDetails"
+            },
+            // Step 6: Select the required fields for the response.
+            {
+                $project: {
+                    role: 1,
+                    projectDetails: { _id: 1, name: 1, description: 1, createdBy: 1, createdAt: 1, updatedAt: 1, projectMembers: 1, memberCount: 1 }
+                }
+            }
+        ]
+    );
+
+    return res.status(200).json(new ApiResponse(200, "Projects fetched successfully", data));
+})
+
 const createProject = asyncHandler(async (req, res) => {
     const { name, description } = req.body;
     const user = req.user;
@@ -29,7 +80,7 @@ const createProject = asyncHandler(async (req, res) => {
 const updateProject = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
     const user = req.user;
-    const { name , description } = req.body;
+    const { name, description } = req.body;
 
     const project = await Project.findById(projectId);
 
@@ -55,9 +106,9 @@ const updateProject = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "Project updated successfully"));
 });
 
-const deleteProject=asyncHandler(async(req,res)=>{
+const deleteProject = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
-    const user=req.user;
+    const user = req.user;
 
     const project = await Project.findById(projectId);
 
@@ -72,10 +123,10 @@ const deleteProject=asyncHandler(async(req,res)=>{
     }
 
     await project.deleteOne();
-   // TODO: Delete associated ProjectMember, Task, Subtask, and Note records
-   // when implementing cascading project deletion.
+    // TODO: Delete associated ProjectMember, Task, Subtask, and Note records
+    // when implementing cascading project deletion.
 
     return res.status(200).json(new ApiResponse(200, "Project deleted successfully"));
 });
 
-export { createProject, updateProject , deleteProject };
+export { listAllProjects, createProject, updateProject, deleteProject };
