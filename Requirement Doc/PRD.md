@@ -94,12 +94,12 @@ Project Camp Backend is a RESTful API service designed to support collaborative 
 - `GET /` - List user projects (secured)
 - `POST /` - Create project (secured)
 - `GET /:projectId` - Get project details (secured, role-based)
-- `PUT /:projectId` - Update project (secured, Admin only)
-- `DELETE /:projectId` - Delete project (secured, Admin only)
+- `PUT /:projectId` - Update project (secured, Admin/Project Admin)
+- `DELETE /:projectId` - Delete project (secured, Admin/Project Admin)
 - `GET /:projectId/members` - List project members (secured)
-- `POST /:projectId/members` - Add project member (secured, Admin only)
-- `PUT /:projectId/members/:userId` - Update member role (secured, Admin only)
-- `DELETE /:projectId/members/:userId` - Remove member (secured, Admin only)
+- `POST /:projectId/members` - Add project member (secured, Admin/Project Admin)
+- `PUT /:projectId/members/:userId` - Update member role (secured, Admin/Project Admin)
+- `DELETE /:projectId/members/:userId` - Remove member (secured, Admin/Project Admin)
 
 **Task Routes** (`/api/v1/tasks/`)
 
@@ -108,17 +108,17 @@ Project Camp Backend is a RESTful API service designed to support collaborative 
 - `GET /:projectId/t/:taskId` - Get task details (secured, role-based)
 - `PUT /:projectId/t/:taskId` - Update task (secured, Admin/Project Admin)
 - `DELETE /:projectId/t/:taskId` - Delete task (secured, Admin/Project Admin)
-- `POST /:projectId/t/:taskId/subtasks` - Create subtask (secured, Admin/Project Admin)
+- `POST /:projectId/t/:taskId/subtasks` - Create subtask (secured, role-based)
 - `PUT /:projectId/st/:subTaskId` - Update subtask (secured, role-based)
-- `DELETE /:projectId/st/:subTaskId` - Delete subtask (secured, Admin/Project Admin)
+- `DELETE /:projectId/st/:subTaskId` - Delete subtask (secured, role-based)
 
 **Note Routes** (`/api/v1/notes/`)
 
 - `GET /:projectId` - List project notes (secured, role-based)
-- `POST /:projectId` - Create note (secured, Admin only)
+- `POST /:projectId` - Create note (secured, role-based)
 - `GET /:projectId/n/:noteId` - Get note details (secured, role-based)
-- `PUT /:projectId/n/:noteId` - Update note (secured, Admin only)
-- `DELETE /:projectId/n/:noteId` - Delete note (secured, Admin only)
+- `PUT /:projectId/n/:noteId` - Update note (secured, role-based)
+- `DELETE /:projectId/n/:noteId` - Delete note (secured, Admin/Project Admin)
 
 **Health Check** (`/api/v1/healthcheck/`)
 
@@ -126,17 +126,27 @@ Project Camp Backend is a RESTful API service designed to support collaborative 
 
 #### 4.2 Permission Matrix
 
-| Feature                    | Admin | Project Admin | Member |
-| -------------------------- | ----- | ------------- | ------ |
-| Create Project             | ✓     | ✗             | ✗      |
-| Update/Delete Project      | ✓     | ✗             | ✗      |
-| Manage Project Members     | ✓     | ✗             | ✗      |
-| Create/Update/Delete Tasks | ✓     | ✓             | ✗      |
-| View Tasks                 | ✓     | ✓             | ✓      |
-| Update Subtask Status      | ✓     | ✓             | ✓      |
-| Create/Delete Subtasks     | ✓     | ✓             | ✗      |
-| Create/Update/Delete Notes | ✓     | ✗             | ✗      |
-| View Notes                 | ✓     | ✓             | ✓      |
+| Feature / Action       | ADMIN | PROJECT_ADMIN | MEMBER |
+| View Project           | ✓     | ✓            | ✓      |
+| Update Project         | ✓     | ✓            | ✗      |
+| Delete Project         | ✓     | ✓            | ✗      |
+| Manage Project Members | ✓     | ✓            | ✗      |
+| Create Tasks           | ✓     | ✓            | ✗      |
+| View Tasks             | ✓     | ✓            | ✓      |
+| Update Task Details    | ✓     | ✓            | ✗      |
+| Delete Tasks           | ✓     | ✓            | ✗      |
+| Update Task Status     | ✓     | ✓            | ✓      |
+| Create Subtasks        | ✓     | ✓            | ✓      |
+| View Subtasks          | ✓     | ✓            | ✓      |
+| Update Subtasks        | ✓     | ✓            | ✓      |
+| Delete Subtasks        | ✓     | ✓            | ✓      |
+| Update Subtask Status  | ✓     | ✓            | ✓      |
+| Create Notes           | ✓     | ✓            | ✓      |
+| View Notes             | ✓     | ✓            | ✓      |
+| Update Notes           | ✓     | ✓            | ✓      |
+| Delete Notes           | ✓     | ✓            | ✗      | 
+
+Any authenticated user can create a project. The creator is automatically assigned `PROJECT_ADMIN` for the newly created project. Project creation is not controlled by the project-level permission mapping. The `ADMIN` role may also create projects.
 
 #### 4.3 Data Models
 
