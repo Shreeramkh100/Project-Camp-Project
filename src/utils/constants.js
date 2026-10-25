@@ -19,7 +19,7 @@ const ALL_PROJECT_ROLES = [
     UserRolesEnum.MEMBER
 ];
 
-export const RoleBasedPermissionMapping = {
+export const RoleBasedMapping = {
     // Project
     VIEW_PROJECT:ALL_PROJECT_ROLES,
     UPDATE_PROJECT: ADMIN_ROLES,
