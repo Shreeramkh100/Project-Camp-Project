@@ -214,11 +214,11 @@ const addProjectMember = asyncHandler(async (req, res) => {
         throw new ApiError(409, "User is already a member of this project");
     }
 
-    //If no role is sent Added User will by default be "Member"
+    //If no role is sent, Default role will be assigned as "member"
     await ProjectMember.create({
         user: newMemberUserInfo._id,
         project: projectObjectId,
-        role: role || UserRolesEnum.MEMBER
+        role: role
     });
 
     return res.status(201).json(new ApiResponse(201, "Member added to your project successfully"));

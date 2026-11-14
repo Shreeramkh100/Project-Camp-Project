@@ -1,5 +1,5 @@
 import { body, param } from "express-validator";
-import { AvailableUserRoles } from "../utils/constants";
+import { AvailableUserRoles } from "../utils/constants.js";
 
 const createProjectValidator = () => {
     return [
@@ -33,9 +33,8 @@ const addProjectMemberValidator = () => {
             .withMessage("Email is invalid"),
 
         body("role")
+            .optional()
             .trim()
-            .notEmpty()
-            .withMessage("Role is mandatory")
             .isIn(AvailableUserRoles)
             .withMessage("Role is invalid"),
 

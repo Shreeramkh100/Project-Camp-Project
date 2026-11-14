@@ -22,15 +22,15 @@ projectRouter
 
 projectRouter
     .route('/:projectId')
-    .get(verifyJWT, validateUserRole(RoleBasedMapping.VIEW_PROJECT, "Get project details"), projectIdValidator(), validate, getProject)
+    .get(verifyJWT, projectIdValidator(), validate, validateUserRole(RoleBasedMapping.VIEW_PROJECT, "Get project details"), getProject)
 
 projectRouter
     .route('/:projectId')
-    .put(verifyJWT, validateUserRole(RoleBasedMapping.UPDATE_PROJECT, "Update project"), projectIdValidator(), validate, updateProject);
+    .put(verifyJWT, projectIdValidator(), validate, validateUserRole(RoleBasedMapping.UPDATE_PROJECT, "Update project"), updateProject);
 
 projectRouter
     .route('/:projectId')
-    .delete(verifyJWT, validateUserRole(RoleBasedMapping.DELETE_PROJECT, "Delete project"), projectIdValidator(), validate, deleteProject);
+    .delete(verifyJWT, projectIdValidator(), validate, validateUserRole(RoleBasedMapping.DELETE_PROJECT, "Delete project"), deleteProject);
 
 projectRouter
     .route('/:projectId/members')
@@ -38,14 +38,14 @@ projectRouter
 
 projectRouter
     .route('/:projectId/members')
-    .post(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Add project member"), addProjectMemberValidator(), validate, addProjectMember);
+    .post(verifyJWT, addProjectMemberValidator(), validate, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Add project member"), addProjectMember);
 
 projectRouter
     .route('/:projectId/members/:userId')
-    .put(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Update member role"), updateProjectMemberValidator(), validate, updateMemberRole);
+    .put(verifyJWT, updateProjectMemberValidator(), validate, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Update member role"), updateMemberRole);
 
 projectRouter
     .route('/:projectId/members/:userId')
-    .delete(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Remove member"), deleteProjectMemberValidator(), validate, deleteMemberRole);
+    .delete(verifyJWT, deleteProjectMemberValidator(), validate, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Remove member"), deleteMemberRole);
 
 export default projectRouter;
