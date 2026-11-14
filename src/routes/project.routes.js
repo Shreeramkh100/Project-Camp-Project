@@ -4,7 +4,7 @@ import verifyJWT from '../middlewares/auth.middlewares.js';
 
 //Validators
 import validate from '../middlewares/validator.middlewares.js';
-import { createProjectValidator, projectIdValidator, addProjectMemberValidator, projectIdAndUserIdValidator } from '../validators/project.validators.js';
+import { createProjectValidator, projectIdValidator, addProjectMemberValidator, updateProjectMemberValidator, deleteProjectMemberValidator } from '../validators/project.validators.js';
 
 //RBAC Implementation
 import validateUserRole from '../middlewares/roleBasedAccces.middlewares.js';
@@ -42,10 +42,10 @@ projectRouter
 
 projectRouter
     .route('/:projectId/members/:userId')
-    .put(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Update member role"), projectIdAndUserIdValidator(), validate, updateMemberRole);
+    .put(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Update member role"), updateProjectMemberValidator(), validate, updateMemberRole);
 
 projectRouter
     .route('/:projectId/members/:userId')
-    .delete(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Remove member"), projectIdAndUserIdValidator(), validate, deleteMemberRole);
+    .delete(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Remove member"), deleteProjectMemberValidator(), validate, deleteMemberRole);
 
 export default projectRouter;

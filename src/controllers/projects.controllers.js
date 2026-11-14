@@ -195,7 +195,7 @@ const getProjectMembers = asyncHandler(async (req, res) => {
 
 const addProjectMember = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
-    const { email } = req.body;
+    const { email, role } = req.body;
 
     const projectObjectId = new mongoose.Types.ObjectId(projectId);
 
@@ -214,19 +214,19 @@ const addProjectMember = asyncHandler(async (req, res) => {
         throw new ApiError(409, "User is already a member of this project");
     }
 
-    //Added Member will by default be Member
+    //If no role is sent Added User will by default be "Member"
     await ProjectMember.create({
         user: newMemberUserInfo._id,
         project: projectObjectId,
-        role: UserRolesEnum.MEMBER
+        role: role || UserRolesEnum.MEMBER
     });
 
     return res.status(201).json(new ApiResponse(201, "Member added to your project successfully"));
 });
 
-//TODO: Currently update works only on upgrade but downgrade also has to be implemented
 const updateMemberRole = asyncHandler(async (req, res) => {
     const { projectId, userId } = req.params;
+    const { newRole } = req.body;
 
     const member = await ProjectMember.findOne({ user: userId, project: projectId });
 
@@ -234,22 +234,18 @@ const updateMemberRole = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Member not found or is not part of this project")
     }
 
-    if (member.role === UserRolesEnum.PROJECT_ADMIN) {
-        return res.status(200).json(new ApiResponse(200, "Member is already a Project Admin"))
-    }
-
-    member.role = UserRolesEnum.PROJECT_ADMIN;
+    member.role = newRole;
     await member.save();
 
-    return res.status(200).json(new ApiResponse(200, "Member role updated to Project Admin successfully"))
+    return res.status(200).json(new ApiResponse(200, "Member role updated successfully"))
 })
 
-const deleteMemberRole = asyncHandler(async(req,res)=>{
+const deleteMemberRole = asyncHandler(async (req, res) => {
     const { projectId, userId } = req.params;
 
     const member = await ProjectMember.findOneAndDelete({ user: userId, project: projectId });
 
-     if (!member) {
+    if (!member) {
         throw new ApiError(404, "Member not found or is not part of this project");
     }
 
