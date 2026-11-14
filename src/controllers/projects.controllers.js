@@ -127,7 +127,7 @@ const updateProject = asyncHandler(async (req, res) => {
     const { name, description } = req.body;
 
     //TODO: Move to validators
-     if (!mongoose.isValidObjectId(projectId)) {
+    if (!mongoose.isValidObjectId(projectId)) {
         throw new ApiError(400, "Invalid project ID");
     }
 
@@ -154,7 +154,7 @@ const deleteProject = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
     const user = req.user;
 
-      //TODO: Move to validators
+    //TODO: Move to validators
     if (!mongoose.isValidObjectId(projectId)) {
         throw new ApiError(400, "Invalid project ID");
     }
@@ -177,7 +177,7 @@ const getProjectMembers = asyncHandler(async (req, res) => {
     const user = req.user;
 
     //TODO: Move to validators
-     if (!mongoose.isValidObjectId(projectId)) {
+    if (!mongoose.isValidObjectId(projectId)) {
         throw new ApiError(400, "Invalid project ID");
     }
 
@@ -233,16 +233,17 @@ const addProjectMember = asyncHandler(async (req, res) => {
     if (!newMemberUserInfo) {
         throw new ApiError(404, "User data not found for adding as Project Member");
     }
-    
-    const existingMember= await ProjectMember.exists({
+
+    const existingMember = await ProjectMember.exists({
         user: newMemberUserInfo._id,
         project: projectObjectId,
     });
 
-     if (existingMember) {
+    if (existingMember) {
         throw new ApiError(409, "User is already a member of this project");
     }
 
+    //Added Member will by default be Member
     await ProjectMember.create({
         user: newMemberUserInfo._id,
         project: projectObjectId,
@@ -252,5 +253,33 @@ const addProjectMember = asyncHandler(async (req, res) => {
     return res.status(201).json(new ApiResponse(201, "Member added to your project successfully"));
 });
 
+//TODO: Currently update works only on upgrade but downgrade also has to be implemented
+const updateMemberRole = asyncHandler(async (req, res) => {
+    const { projectId, userId } = req.params;
 
-export { listAllProjects, createProject, getProject, updateProject, deleteProject, getProjectMembers, addProjectMember };
+    //TODO: Move to validators
+    if (!mongoose.isValidObjectId(projectId)) {
+        throw new ApiError(400, "Invalid project ID");
+    }
+    if (!mongoose.isValidObjectId(userId)) {
+        throw new ApiError(400, "Invalid member ID");
+    }
+
+    const member = await ProjectMember.findOne({ user: userId, project: projectId });
+
+    if (!member) {
+        throw new ApiError(404, "User not found or is not part of this project")
+    }
+
+    if (member.role === UserRolesEnum.PROJECT_ADMIN) {
+        return res.status(200).json(new ApiResponse(200, "Member is already a Project Admin"))
+    }
+
+    member.role = UserRolesEnum.PROJECT_ADMIN;
+    await member.save();
+
+    return res.status(200).json(new ApiResponse(200, "Member role updated to Project Admin successfully"))
+})
+
+
+export { listAllProjects, createProject, getProject, updateProject, deleteProject, getProjectMembers, addProjectMember, updateMemberRole };
