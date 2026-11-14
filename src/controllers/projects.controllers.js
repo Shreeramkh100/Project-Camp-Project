@@ -87,11 +87,6 @@ const getProject = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
     const user = req.user;
 
-    //TODO: Move to validators
-    if (!mongoose.isValidObjectId(projectId)) {
-        throw new ApiError(400, "Invalid project ID");
-    }
-
     const data = await ProjectMember.aggregate(
         [
             { $match: { user: user._id, project: new mongoose.Types.ObjectId(projectId) } },
@@ -123,20 +118,13 @@ const getProject = asyncHandler(async (req, res) => {
 
 const updateProject = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
-    const user = req.user;
     const { name, description } = req.body;
-
-    //TODO: Move to validators
-    if (!mongoose.isValidObjectId(projectId)) {
-        throw new ApiError(400, "Invalid project ID");
-    }
 
     const project = await Project.findById(projectId);
 
     if (!project) {
         throw new ApiError(404, "Project not found");
     }
-
 
     if (name) {
         project.name = name;
@@ -152,12 +140,6 @@ const updateProject = asyncHandler(async (req, res) => {
 
 const deleteProject = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
-    const user = req.user;
-
-    //TODO: Move to validators
-    if (!mongoose.isValidObjectId(projectId)) {
-        throw new ApiError(400, "Invalid project ID");
-    }
 
     const project = await Project.findById(projectId);
 
@@ -175,11 +157,6 @@ const deleteProject = asyncHandler(async (req, res) => {
 const getProjectMembers = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
     const user = req.user;
-
-    //TODO: Move to validators
-    if (!mongoose.isValidObjectId(projectId)) {
-        throw new ApiError(400, "Invalid project ID");
-    }
 
     const membership = await ProjectMember.exists({
         project: projectId,
@@ -220,11 +197,6 @@ const addProjectMember = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
     const { email } = req.body;
 
-    //TODO: Move to validators
-    if (!mongoose.isValidObjectId(projectId)) {
-        throw new ApiError(400, "Invalid project ID");
-    }
-
     const projectObjectId = new mongoose.Types.ObjectId(projectId);
 
     const newMemberUserInfo = await User.findOne({ email: email });
@@ -256,14 +228,6 @@ const addProjectMember = asyncHandler(async (req, res) => {
 const updateMemberRole = asyncHandler(async (req, res) => {
     const { projectId, userId } = req.params;
 
-    //TODO: Move to validators
-    if (!mongoose.isValidObjectId(projectId)) {
-        throw new ApiError(400, "Invalid project ID");
-    }
-    if (!mongoose.isValidObjectId(userId)) {
-        throw new ApiError(400, "Invalid member ID");
-    }
-
     const member = await ProjectMember.findOne({ user: userId, project: projectId });
 
     if (!member) {
@@ -282,14 +246,6 @@ const updateMemberRole = asyncHandler(async (req, res) => {
 
 const deleteMemberRole = asyncHandler(async(req,res)=>{
     const { projectId, userId } = req.params;
-
-    //TODO: Move to validators
-    if (!mongoose.isValidObjectId(projectId)) {
-        throw new ApiError(400, "Invalid project ID");
-    }
-    if (!mongoose.isValidObjectId(userId)) {
-        throw new ApiError(400, "Invalid member ID");
-    }
 
     const member = await ProjectMember.findOneAndDelete({ user: userId, project: projectId });
 
