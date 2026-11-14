@@ -218,7 +218,6 @@ const getProjectMembers = asyncHandler(async (req, res) => {
 
 const addProjectMember = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
-    const user = req.user;
     const { email } = req.body;
 
     //TODO: Move to validators
@@ -268,7 +267,7 @@ const updateMemberRole = asyncHandler(async (req, res) => {
     const member = await ProjectMember.findOne({ user: userId, project: projectId });
 
     if (!member) {
-        throw new ApiError(404, "User not found or is not part of this project")
+        throw new ApiError(404, "Member not found or is not part of this project")
     }
 
     if (member.role === UserRolesEnum.PROJECT_ADMIN) {
@@ -281,5 +280,24 @@ const updateMemberRole = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, "Member role updated to Project Admin successfully"))
 })
 
+const deleteMemberRole = asyncHandler(async(req,res)=>{
+    const { projectId, userId } = req.params;
 
-export { listAllProjects, createProject, getProject, updateProject, deleteProject, getProjectMembers, addProjectMember, updateMemberRole };
+    //TODO: Move to validators
+    if (!mongoose.isValidObjectId(projectId)) {
+        throw new ApiError(400, "Invalid project ID");
+    }
+    if (!mongoose.isValidObjectId(userId)) {
+        throw new ApiError(400, "Invalid member ID");
+    }
+
+    const member = await ProjectMember.findOneAndDelete({ user: userId, project: projectId });
+
+     if (!member) {
+        throw new ApiError(404, "Member not found or is not part of this project");
+    }
+
+    return res.status(200).json(new ApiResponse(200, "Member removed from the project successfully"));
+})
+
+export { listAllProjects, createProject, getProject, updateProject, deleteProject, getProjectMembers, addProjectMember, updateMemberRole, deleteMemberRole };

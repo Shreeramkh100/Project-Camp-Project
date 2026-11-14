@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listAllProjects, createProject, getProject, updateProject, deleteProject, getProjectMembers, addProjectMember, updateMemberRole } from '../controllers/projects.controllers.js';
+import { listAllProjects, createProject, getProject, updateProject, deleteProject, getProjectMembers, addProjectMember, updateMemberRole, deleteMemberRole } from '../controllers/projects.controllers.js';
 import verifyJWT from '../middlewares/auth.middlewares.js';
 
 //RBAC Implementation
@@ -30,14 +30,18 @@ projectRouter
 
 projectRouter
     .route('/:projectId/members')
-    .get(verifyJWT, getProjectMembers)
+    .get(verifyJWT, getProjectMembers);
 
 projectRouter
     .route('/:projectId/members')
-    .post(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Add project member"), addProjectMember)
+    .post(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Add project member"), addProjectMember);
 
 projectRouter
     .route('/:projectId/members/:userId')
-    .put(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Update member role"), updateMemberRole)
+    .put(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Update member role"), updateMemberRole);
+
+projectRouter
+    .route('/:projectId/members/:userId')
+    .delete(verifyJWT, validateUserRole(RoleBasedMapping.MANAGE_PROJECT_MEMBERS, "Remove member"), deleteMemberRole);
 
 export default projectRouter;
