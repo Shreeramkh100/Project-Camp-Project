@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listAllProjects, createProject, getProject, updateProject, deleteProject, getProjectMembers, addProjectMember, updateMemberRole, deleteMemberRole } from '../controllers/projects.controllers.js';
+import { listAllProjects, createProject, getProject, updateProject, deleteProject, getProjectMembers, addProjectMember, updateMemberRole, deleteMemberRole } from '../controllers/project.controllers.js';
 import verifyJWT from '../middlewares/auth.middlewares.js';
 
 //Validators
